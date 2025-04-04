@@ -28,11 +28,3 @@ stages:
     metrics:
     - metrics/metrics.json:
         cache: false
-  predict:
-    cmd: python src/models/predict_model.py
-    deps:
-    - data/processed/
-    - models/
-    - src/models/predict_model.py
-    outs:
-    - data/predictions/
