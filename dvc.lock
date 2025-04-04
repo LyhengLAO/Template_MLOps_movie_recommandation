@@ -1,0 +1,78 @@
+schema: '2.0'
+stages:
+  import:
+    cmd: python src/data/import_raw_data.py
+    deps:
+    - path: src/data/import_raw_data.py
+      hash: md5
+      md5: 1b44156c7fa544574b23aae95fc43e12
+      size: 1965
+      isexec: true
+    outs:
+    - path: data/raw/
+      hash: md5
+      md5: 48075d09c7a9071bb5d4faffc14edfcb.dir
+      size: 875598668
+      nfiles: 7
+  prepare:
+    cmd: python src/data/make_dataset.py data/raw data/processed
+    deps:
+    - path: data/raw/
+      hash: md5
+      md5: 48075d09c7a9071bb5d4faffc14edfcb.dir
+      size: 875598668
+      nfiles: 7
+    - path: src/data/make_dataset.py
+      hash: md5
+      md5: fa67f84cb4284c5f382ffb817c704b61
+      size: 1943
+      isexec: true
+    outs:
+    - path: data/processed/
+      hash: md5
+      md5: f33680018e887b254af5aeabec0a15ff.dir
+      size: 45632816
+      nfiles: 2
+  train:
+    cmd: python src/models/train_model.py
+    deps:
+    - path: data/processed/
+      hash: md5
+      md5: f33680018e887b254af5aeabec0a15ff.dir
+      size: 45632816
+      nfiles: 2
+    - path: src/models/train_model.py
+      hash: md5
+      md5: b02f60db45064f12f60db95d1704d2a9
+      size: 4222
+      isexec: true
+    outs:
+    - path: models/model.pkl
+      hash: md5
+      md5: 75f825ddc67e7b4c24d4b16106a100d8
+      size: 9144993
+      isexec: true
+  evaluate:
+    cmd: python src/models/evalue.py
+    deps:
+    - path: data/processed/
+      hash: md5
+      md5: f33680018e887b254af5aeabec0a15ff.dir
+      size: 45632816
+      nfiles: 2
+    - path: models/
+      hash: md5
+      md5: 36f5e768cbfb865a471d0e26661e87d1.dir
+      size: 9145004
+      nfiles: 3
+    - path: src/models/evalue.py
+      hash: md5
+      md5: 8e9df500c5462c179155fdac3e0604ce
+      size: 4136
+      isexec: true
+    outs:
+    - path: metrics/metrics.json
+      hash: md5
+      md5: df913336482861d0a8b8acc1ff10b1d4
+      size: 62
+      isexec: true

@@ -1,0 +1,38 @@
+stages:
+  import:
+    cmd: python src/data/import_raw_data.py
+    deps:
+    - src/data/import_raw_data.py
+    outs:
+    - data/raw/
+  prepare:
+    cmd: python src/data/make_dataset.py data/raw data/processed
+    deps:
+    - data/raw/
+    - src/data/make_dataset.py
+    outs:
+    - data/processed/
+  train:
+    cmd: python src/models/train_model.py
+    deps:
+    - data/processed/
+    - src/models/train_model.py
+    outs:
+    - models/model.pkl
+  evaluate:
+    cmd: python src/models/evalue.py
+    deps:
+    - data/processed/
+    - models/
+    - src/models/evalue.py
+    metrics:
+    - metrics/metrics.json:
+        cache: false
+  predict:
+    cmd: python src/models/predict_model.py
+    deps:
+    - data/processed/
+    - models/
+    - src/models/predict_model.py
+    outs:
+    - data/predictions/
