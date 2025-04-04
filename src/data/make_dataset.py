@@ -1,30 +1,56 @@
-# -*- coding: utf-8 -*-
+# preprocess.py
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+import os
 import click
 import logging
 from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 
 
+def read_ratings(ratings_csv, data_dir) -> pd.DataFrame:
+    data = pd.read_csv(os.path.join(data_dir, ratings_csv))
+    temp = pd.DataFrame(LabelEncoder().fit_transform(data["movieId"]))
+    data["movieId"] = temp
+    return data
+
+
+def read_movies(movies_csv, data_dir) -> pd.DataFrame:
+    df = pd.read_csv(os.path.join(data_dir, movies_csv))
+    genres = df["genres"].str.get_dummies(sep="|")
+    result_df = pd.concat([df[["movieId", "title"]], genres], axis=1)
+    return result_df
+
+
+def create_user_matrix(ratings, movies):
+    movie_ratings = ratings.merge(movies, on="movieId", how="inner")
+    movie_ratings = movie_ratings.drop(["movieId", "timestamp", "title", "rating"], axis=1)
+    user_matrix = movie_ratings.groupby("userId").agg("mean")
+    return user_matrix
+
+
 @click.command()
-@click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
-def main(input_filepath, output_filepath):
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready to be analyzed (saved in ../processed).
-    """
+@click.argument('input_dir', type=click.Path(exists=True))
+@click.argument('output_dir', type=click.Path())
+def main(input_dir, output_dir):
+    """Process raw ratings and movies data and save cleaned user/movie matrices."""
     logger = logging.getLogger(__name__)
-    logger.info('making final data set from raw data')
+    logger.info('Processing data...')
+
+    ratings = read_ratings("ratings.csv", input_dir)
+    movies = read_movies("movies.csv", input_dir)
+    user_matrix = create_user_matrix(ratings, movies)
+
+    # Save movie matrix (excluding title)
+    movies.drop("title", axis=1).to_csv(os.path.join(output_dir, "movie_matrix.csv"), index=False)
+    user_matrix.to_csv(os.path.join(output_dir, "user_matrix.csv"))
+
+    logger.info('Data processing complete. Files saved to: %s', output_dir)
 
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
-
-    # not used in this stub but often useful for finding various files
-    project_dir = Path(__file__).resolve().parents[2]
-
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
     load_dotenv(find_dotenv())
 
     main()
