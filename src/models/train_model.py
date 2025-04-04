@@ -17,8 +17,8 @@ config.init_wandb(run_name="train_knn_model")
 # -----------------------------
 # Configuration du tracking URI MLflow
 # -----------------------------
-tracking_uri = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "mlruns"))
-mlflow.set_tracking_uri(f"file:///{tracking_uri}")
+tracking_uri = os.path.join(os.getcwd(), "mlruns")
+mlflow.set_tracking_uri(f"file://{tracking_uri}")
 mlflow.set_experiment("movie_recommendation_experiment")
 
 # -----------------------------
@@ -57,9 +57,8 @@ def train_model(movie_matrix):
 # Script principal
 # -----------------------------
 if __name__ == "__main__":
-    data_path = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "data", "processed", "movie_matrix.csv"))
-    movie_matrix = pd.read_csv(data_path)
-    logging.info(f"Données chargées depuis : {data_path}")
+    movie_matrix = pd.read_csv('./data/processed/movie_matrix.csv')
+    logging.info(f"Données chargées depuis : './data/processed/movie_matrix.csv'")
 
     with mlflow.start_run() as run:
         # Log des infos système

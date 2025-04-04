@@ -1,4 +1,3 @@
-# preprocess.py
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 import os
@@ -32,25 +31,24 @@ def create_user_matrix(ratings, movies):
 @click.command()
 @click.argument('input_dir', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path())
-def main():
+def main(input_dir, output_dir):
     """Process raw ratings and movies data and save cleaned user/movie matrices."""
     logger = logging.getLogger(__name__)
     logger.info('Processing data...')
 
-    ratings = read_ratings("ratings.csv")
-    movies = read_movies("movies.csv")
+    ratings = read_ratings("ratings.csv", input_dir)
+    movies = read_movies("movies.csv", input_dir)
     user_matrix = create_user_matrix(ratings, movies)
 
-    # Save movie matrix (excluding title)
-    movies.drop("title", axis=1).to_csv("data/processed/movie_matrix.csv", index=False)
-    user_matrix.to_csv(os.path.join("data/processed/user_matrix.csv", "user_matrix.csv"))
+    os.makedirs(output_dir, exist_ok=True)
+    movies.drop("title", axis=1).to_csv(os.path.join(output_dir, "movie_matrix.csv"), index=False)
+    user_matrix.to_csv(os.path.join(output_dir, "user_matrix.csv"))
 
-    logger.info('Data processing complete. Files saved to: %s', "data/processed/user_matrix.csv")
+    logger.info('Data processing complete. Files saved to: %s', output_dir)
 
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
     load_dotenv(find_dotenv())
-
     main()
