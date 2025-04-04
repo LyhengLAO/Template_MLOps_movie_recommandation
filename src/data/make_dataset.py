@@ -8,14 +8,14 @@ from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 
 
-def read_ratings(ratings_csv, data_dir) -> pd.DataFrame:
+def read_ratings(ratings_csv, data_dir="data/raw") -> pd.DataFrame:
     data = pd.read_csv(os.path.join(data_dir, ratings_csv))
     temp = pd.DataFrame(LabelEncoder().fit_transform(data["movieId"]))
     data["movieId"] = temp
     return data
 
 
-def read_movies(movies_csv, data_dir) -> pd.DataFrame:
+def read_movies(movies_csv, data_dir="data/raw") -> pd.DataFrame:
     df = pd.read_csv(os.path.join(data_dir, movies_csv))
     genres = df["genres"].str.get_dummies(sep="|")
     result_df = pd.concat([df[["movieId", "title"]], genres], axis=1)
@@ -32,20 +32,20 @@ def create_user_matrix(ratings, movies):
 @click.command()
 @click.argument('input_dir', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path())
-def main(input_dir, output_dir):
+def main():
     """Process raw ratings and movies data and save cleaned user/movie matrices."""
     logger = logging.getLogger(__name__)
     logger.info('Processing data...')
 
-    ratings = read_ratings("ratings.csv", input_dir)
-    movies = read_movies("movies.csv", input_dir)
+    ratings = read_ratings("ratings.csv")
+    movies = read_movies("movies.csv")
     user_matrix = create_user_matrix(ratings, movies)
 
     # Save movie matrix (excluding title)
-    movies.drop("title", axis=1).to_csv(os.path.join(output_dir, "movie_matrix.csv"), index=False)
-    user_matrix.to_csv(os.path.join(output_dir, "user_matrix.csv"))
+    movies.drop("title", axis=1).to_csv("data/processed/movie_matrix.csv", index=False)
+    user_matrix.to_csv(os.path.join("data/processed/user_matrix.csv", "user_matrix.csv"))
 
-    logger.info('Data processing complete. Files saved to: %s', output_dir)
+    logger.info('Data processing complete. Files saved to: %s', "data/processed/user_matrix.csv")
 
 
 if __name__ == '__main__':

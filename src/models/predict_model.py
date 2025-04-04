@@ -2,8 +2,10 @@ import pandas as pd
 import pickle
 import numpy as np
 
+def make_predictions(users_id, user_matrix_filename):
+    with open('models/model.pkl', 'rb') as file:
+        model = pickle.load(file)
 
-def make_predictions(users_id, model_filename, user_matrix_filename):
     # Read user_matrix
     users = pd.read_csv(user_matrix_filename)
 
@@ -12,11 +14,6 @@ def make_predictions(users_id, model_filename, user_matrix_filename):
 
     # Delete userId
     users = users.drop("userId", axis=1)
-
-    # Open model
-    filehandler = open(model_filename, "rb")
-    model = pickle.load(filehandler)
-    filehandler.close()
 
     # Calculate nearest neighbors
     _, indices = model.kneighbors(users)
@@ -33,9 +30,8 @@ if __name__ == "__main__":
     # Take the 5 first users Id of the DB
     users_id = [1, 2, 3, 4, 5]
 
-    # Make predictions using `model.pkl`
     predictions = make_predictions(
-        users_id, "models/model.pkl", "data/processed/user_matrix.csv"
+        users_id, "data/processed/user_matrix.csv" 
     )
 
     print(predictions)
