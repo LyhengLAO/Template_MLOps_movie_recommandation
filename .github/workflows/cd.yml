@@ -1,0 +1,34 @@
+name: CD
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Train and deploy the model
+        run: |
+          python src/models/train_model.py
+          # Ici, le script réentraîne le modèle et enregistre le fichier dans le dossier "models"
+
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: model
+          path: models/model.pkl
